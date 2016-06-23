@@ -54,3 +54,4 @@ The binary *hpmvs* takes an [nvm-file](http://ccwu.me/vsfm/doc.html#nvm) as inpu
 ```
 ./hpmvs --nvm=<nvm-file> --outdir=/tmp
 ```
+
