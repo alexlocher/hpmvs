@@ -20,7 +20,7 @@
 
 #include <hpmvs/NVMReader.h>
 #include <glog/logging.h>
-#include <stlplus3/portability/portability.hpp>
+#include <stlplus3/file_system.hpp>
 #include <iomanip>
 
 using namespace std;

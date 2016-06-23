@@ -24,7 +24,7 @@
 #include <chrono>
 
 #include <glog/logging.h>
-#include <stlplus3/portability/portability.hpp>
+#include <stlplus3/file_system.hpp>
 
 namespace mo3d {
 
