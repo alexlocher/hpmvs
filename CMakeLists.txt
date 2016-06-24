@@ -38,7 +38,6 @@ endif()
 
 include_directories(
 	"${PROJECT_SOURCE_DIR}/include"
-        ${STLPLUS_INCLUDE_DIRS}
 	${EIGEN3_INCLUDE_DIR}
 	${JPEG_INCLUDE_DIR}
 	${GFLAGS_INCLUDE_DIRS}
@@ -51,6 +50,6 @@ include_directories(
 
 
 add_executable (hpmvs src/main.cpp ${MY_SRC})
-target_link_libraries(hpmvs ${STLPLUS_LIBRARIES} ${JPEG_LIBRARIES} ${GFLAGS_LIBRARIES} ${GLOG_LIBRARIES} nlopt stlplus3)
+target_link_libraries(hpmvs ${JPEG_LIBRARIES} ${GFLAGS_LIBRARIES} ${GLOG_LIBRARIES} nlopt stlplus3)
 
 install(TARGETS hpmvs RUNTIME DESTINATION bin)
