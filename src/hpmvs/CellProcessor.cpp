@@ -22,7 +22,7 @@
 #include <glog/logging.h>
 #include <Eigen/Dense>
 #include <set>
-#include <stlplus3/portability/portability.hpp>
+#include <stlplus3/file_system.hpp>
 #include <iomanip>
 
 #include <hpmvs/Scene.h>

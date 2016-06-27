@@ -25,7 +25,7 @@
 #include <glog/logging.h>
 #include <gflags/gflags.h>
 
-#include <stlplus3/portability/portability.hpp>
+#include <stlplus3/file_system.hpp>
 
 #include <hpmvs/NVMReader.h>
 #include <hpmvs/CellProcessor.h>
@@ -200,7 +200,7 @@ int main(int argc, char* argv[]) {
 	google::InitGoogleLogging(argv[0]);
 	FLAGS_colorlogtostderr = true;
 	FLAGS_logtostderr = FLAGS_forcelogtostderr;
-	GFLAGS_NAMESPACE::ParseCommandLineFlags(&argc, &argv, true);
+	HPMVS_GFLAGS_NAMESPACE::ParseCommandLineFlags(&argc, &argv, true);
 
 	LOG(INFO)<< " =============================================================== ";
 	LOG(INFO)<< " ======== welcome to the Progressive Multiview Stereo    ======= ";
@@ -225,4 +225,3 @@ int main(int argc, char* argv[]) {
 	// launch the actual thing
 	return hp_pmvs(FLAGS_nvm, options);
 }
-
