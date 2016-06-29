@@ -38,7 +38,13 @@ If you use the algortihm in your academic work, please cite:
 
 # Build and Install
 We use the cmake framework for compilation and installation. The software is currently
-only tested in a Linux environment. 
+only tested in a Linux environment. First make sure that you install the necessary dependencies:
+
+```
+sudo apt-get install build-essential git cmake libeigen3-dev libjpeg-dev libgflags-dev libgoogle-glog-dev
+```
+
+then you should be able to get and compile hpmvs with:
 
 ```
 git clone https://github.com/alexlocher/hpmvs
