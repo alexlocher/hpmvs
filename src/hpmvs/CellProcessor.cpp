@@ -1,22 +1,22 @@
 /**
-* This file is part of HPMVS (Hierarchical Prioritized Multiview Stereo).
-*
-* Copyright (C) 2015-2016 Alex Locher <alocher at ethz dot ch> (ETH Zuerich)
-* For more information see <https://github.com/alexlocher/hpmvs>
-*
-* HPMVS is free software: you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* HPMVS is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with HPMVS. If not, see <http://www.gnu.org/licenses/>.
-*/
+ * This file is part of HPMVS (Hierarchical Prioritized Multiview Stereo).
+ *
+ * Copyright (C) 2015-2016 Alex Locher <alocher at ethz dot ch> (ETH Zuerich)
+ * For more information see <https://github.com/alexlocher/hpmvs>
+ *
+ * HPMVS is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * HPMVS is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with HPMVS. If not, see <http://www.gnu.org/licenses/>.
+ */
 
 #include <hpmvs/CellProcessor.h>
 #include <glog/logging.h>
@@ -33,8 +33,8 @@ using namespace Eigen;
 namespace mo3d {
 
 CellProcessor::CellProcessor(Scene* scene, const HpmvsOptions& options) :
-		maxTreeLevel(1000), f_patchevent(), scene_p(scene), options_p(&options), optimizer_p(0), ptree(
-				0), borderCellFn_(0) {
+		f_patchevent(), scene_p(scene), options_p(&options), optimizer_p(0), ptree(0), borderCellFn_(
+				0) {
 }
 
 CellProcessor::~CellProcessor() {
@@ -224,8 +224,6 @@ void CellProcessor::branch(Leaf<Ppatch3d>* cell) {
 
 	// get x and y axis
 	Eigen::Vector3f n = p->normal_.head(3);
-//	Vector3f imgX(pss->m_photos[refImg].m_xaxis[0], pss->m_photos[refImg].m_xaxis[1],
-//			pss->m_photos[refImg].m_xaxis[2]);
 	Eigen::Vector3f imgX = scene_p->cameras_[refImg].xAxis_;
 	Vector3f yaxis = n.cross(imgX).normalized();
 	Vector3f xaxis = yaxis.cross(n);
@@ -269,8 +267,8 @@ void CellProcessor::branch(Leaf<Ppatch3d>* cell) {
 
 	// if we did not successfully branched into at least one new patch, consider
 	// this cell as exhausted
-	if (newPatches.size() == 0)
-		return;
+//	if (newPatches.size() == 0)
+//		return;
 
 	// now change the cell
 	vector<Ppatch3d> oldPatch;
@@ -320,8 +318,6 @@ void CellProcessor::regularize(Leaf<Ppatch3d>* cell) {
 
 	// get x and y axis
 	Eigen::Vector3f n = p->normal_.head(3);
-//	Vector3f imgX(pss->m_photos[refImg].m_xaxis[0], pss->m_photos[refImg].m_xaxis[1],
-//			pss->m_photos[refImg].m_xaxis[2]);
 	Eigen::Vector3f imgX = scene_p->cameras_[refImg].xAxis_;
 	Vector3f yaxis = n.cross(imgX).normalized();
 	Vector3f xaxis = yaxis.cross(n);
@@ -374,7 +370,7 @@ void CellProcessor::processCell(Leaf<Ppatch3d>* cell, float priority) {
 		return; // no need for processing
 
 	// stop processing
-	if (priority >= (maxTreeLevel + 1) * 10)
+	if (priority >= (options_p->MAX_TREE_LEVEL + 1) * 10)
 		return;
 
 	if (cell->data.size() > 1)
@@ -480,7 +476,6 @@ bool CellProcessor::processQueue(PatchOptimizer* optimizer, float maxPriority) {
 	return borderCellsAdded || processedCells > 0;
 }
 
-
 bool CellProcessor::insertBorderCell(Ppatch3d& patch, const float prioritiy) {
 	// check if the patch fits the current tree
 	if (ptree == nullptr)
@@ -506,6 +501,9 @@ bool CellProcessor::processBorderCellQueue() {
 		// the patch is already optimized and everything => now we just have to add it to the tree
 		Leaf<Ppatch3d>* newLeaf = ptree->at(newP->x(), newP->y(), newP->z());
 		if (ptree->addConditional(newP, newP->scale_3dx_ * 2.0, &newLeaf)) {
+
+			// prevent regularization on border cells
+			newP->flatness_ = 0;
 
 			// depth
 			scene_p->setDepths(*newP, false);

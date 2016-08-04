@@ -52,7 +52,6 @@ private:
 
 	// the processing queue
 	std::priority_queue<PriorityCell, std::deque<PriorityCell>, CellCompare> processing_queue;
-	int maxTreeLevel;
 
 	// callback function for patchchanges
 	std::function<void(const mo3d::Ppatch3d&)> f_patchevent;

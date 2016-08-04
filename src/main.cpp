@@ -1,22 +1,22 @@
 /**
-* This file is part of HPMVS (Hierarchical Prioritized Multiview Stereo).
-*
-* Copyright (C) 2015-2016 Alex Locher <alocher at ethz dot ch> (ETH Zuerich)
-* For more information see <https://github.com/alexlocher/hpmvs>
-*
-* HPMVS is free software: you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* HPMVS is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with HPMVS. If not, see <http://www.gnu.org/licenses/>.
-*/
+ * This file is part of HPMVS (Hierarchical Prioritized Multiview Stereo).
+ *
+ * Copyright (C) 2015-2016 Alex Locher <alocher at ethz dot ch> (ETH Zuerich)
+ * For more information see <https://github.com/alexlocher/hpmvs>
+ *
+ * HPMVS is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * HPMVS is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with HPMVS. If not, see <http://www.gnu.org/licenses/>.
+ */
 
 #include <iostream>
 #include <string>
@@ -39,17 +39,19 @@ using namespace std;
 DEFINE_string(nvm, "", "input nvm file");
 DEFINE_string(outdir, "/tmp/hpmvs", "output directory");
 DEFINE_bool(forcelogtostderr, true, "log to stderr");
-DEFINE_int32(subtrees, 100, "min number subtrees the model is split into"	);
+DEFINE_int32(subtrees, 100, "min number subtrees the model is split into");
+DEFINE_int32(maxtreelevel, 20, "maximum level of the octree");
 
 template<class Element>
 void getSubTrees(DynOctTree<Element>& tree,
 		std::vector<std::shared_ptr<DynOctTree<Element> > >& subTrees, const int minTrees = 2) {
 
-	if (minTrees < 2){
-		subTrees.emplace_back(std::shared_ptr<DynOctTree<Element> >(&tree));
+	if (minTrees < 2) {
+		// create a subtree from the root
+		subTrees.emplace_back(
+				std::shared_ptr<DynOctTree<Element> >(new DynOctTree<Element>(tree.getRoot())));
 		return;
 	}
-
 
 	// do a first split
 	tree.getSubTrees(subTrees);
@@ -105,8 +107,8 @@ int hp_pmvs(const std::string& dataset, const mo3d::HpmvsOptions options) {
 	scene.addCameras(models[0], options);
 	scene.extractCoVisiblilty(models[0], options);
 	scene.initPatches(models[0], options);
-	scene.savePMats(stlplus::create_filespec(options.OUTFOLDER, "pmats", "txt").c_str());
-	scene.savePoseMats(stlplus::create_filespec(options.OUTFOLDER, "poses", "txt").c_str());
+//	scene.savePMats(stlplus::create_filespec(options.OUTFOLDER, "pmats", "txt").c_str());
+//	scene.savePoseMats(stlplus::create_filespec(options.OUTFOLDER, "poses", "txt").c_str());
 
 	const int nrThreads = omp_get_max_threads();
 
@@ -133,7 +135,7 @@ int hp_pmvs(const std::string& dataset, const mo3d::HpmvsOptions options) {
 	const auto start = std::chrono::steady_clock::now();
 
 	// process the queues level by level
-	const int maxPrio = 200;
+	const int maxPrio = (options.MAX_TREE_LEVEL + 1) * 10;
 	for (int prio = 0; prio < maxPrio; prio += 1) {
 
 		std::atomic<uint32_t> trees_changed(0);
@@ -189,8 +191,8 @@ int hp_pmvs(const std::string& dataset, const mo3d::HpmvsOptions options) {
 //					"tree-" + std::to_string(procTime) + " sec -").c_str(),
 //			false);
 	scene.patchTree_.toExtPly(
-			stlplus::create_filespec(options.OUTFOLDER, "patches-" + std::to_string(procTime)+ " sec",
-					"ply").c_str());
+			stlplus::create_filespec(options.OUTFOLDER,
+					"patches-" + std::to_string(procTime) + " sec", "ply").c_str());
 
 	// -----------------------------------------------------------------
 	return EXIT_SUCCESS;
@@ -214,13 +216,14 @@ int main(int argc, char* argv[]) {
 																									<< ">";
 
 	// output some information
-	LOG(INFO)<< "dataset      : <" << FLAGS_nvm << ">";
-	LOG(INFO)<< "dataset      : <" << FLAGS_outdir << ">";
-	LOG(INFO)<< "dataset      : <" << omp_get_max_threads();
+	LOG(INFO)<< "dataset        : <" << FLAGS_nvm << ">";
+	LOG(INFO)<< "out directory  : <" << FLAGS_outdir << ">";
+	LOG(INFO)<< "number threads : <" << omp_get_max_threads() << ">";
 
 	// set the options
 	mo3d::HpmvsOptions options;
 	options.OUTFOLDER = FLAGS_outdir;
+	options.MAX_TREE_LEVEL = FLAGS_maxtreelevel;
 
 	// launch the actual thing
 	return hp_pmvs(FLAGS_nvm, options);

@@ -34,6 +34,9 @@ struct HpmvsOptions {
 	float MAX_ANGLE = 60.0f * M_PI / 180.0f;
 	float MIN_ANGLE = 10.0f * M_PI / 180.0f;
 
+	// tree
+	int MAX_TREE_LEVEL = 20;
+
 	// optimization options
 	int NR_OPTIMIZATION_THREADS = 3;
 	int MAX_IMAGES_PER_PATCH = 6;

@@ -497,7 +497,7 @@ void DynOctTree<Element>::getSubTrees(std::vector<std::shared_ptr<DynOctTree<Ele
 	for (int ii = 0; ii < 8; ii++) {
 		if (root->children[ii] != 0 && root->children[ii]->type_ == Cell::BRANCH) {
 			Branch<Element>* subRoot = reinterpret_cast<Branch<Element>*>(root->children[ii]);
-			if (!subRoot->empty())
+//			if (!subRoot->empty())
 				trees.emplace_back(
 						std::make_shared<DynOctTree<Element> >(subRoot, true, rootLevel_ + 1));
 		}
