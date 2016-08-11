@@ -24,6 +24,7 @@
 #include <Eigen/Dense>
 #include <atomic>
 #include <memory>
+#include <vector>
 
 namespace mo3d {
 

@@ -18,6 +18,7 @@
 * along with HPMVS. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <numeric>
 #include <set>
 #include <iomanip>
 
