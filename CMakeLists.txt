@@ -1,15 +1,14 @@
-cmake_minimum_required (VERSION 2.8.9)
+cmake_minimum_required (VERSION 3.1 )
 project (HPMVS)
 
 ADD_DEFINITIONS(
-    -std=c++11
     -O3
 )
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 #find_package(Loccom REQUIRED)
-find_package(Eigen3 REQUIRED)
+find_package(Eigen REQUIRED)
 find_package(JPEG REQUIRED)
 find_package(Gflags REQUIRED)
 add_definitions(-DHPMVS_GFLAGS_NAMESPACE=${GFLAGS_NAMESPACE})
@@ -38,7 +37,7 @@ endif()
 
 include_directories(
 	"${PROJECT_SOURCE_DIR}/include"
-	${EIGEN3_INCLUDE_DIR}
+	${EIGEN_INCLUDE_DIR}
 	${JPEG_INCLUDE_DIR}
 	${GFLAGS_INCLUDE_DIRS}
 	${GLOG_INCLUDE_DIRS}
@@ -51,5 +50,6 @@ include_directories(
 
 add_executable (hpmvs src/main.cpp ${MY_SRC})
 target_link_libraries(hpmvs ${JPEG_LIBRARIES} ${GFLAGS_LIBRARIES} ${GLOG_LIBRARIES} nlopt stlplus3)
+set_property(TARGET hpmvs PROPERTY CXX_STANDARD 11)
 
 install(TARGETS hpmvs RUNTIME DESTINATION bin)
