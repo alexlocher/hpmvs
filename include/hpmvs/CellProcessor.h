@@ -72,7 +72,8 @@ public:
 	virtual ~CellProcessor();
 
 	void initFromTree(DynOctTree<Ppatch3d>* tree,
-			std::function<void(Ppatch3d, const float)>* borderPatch = 0);
+			std::function<void(Ppatch3d, const float)>* borderPatch = 0,
+ 			bool skip_clean = false);
 
 	bool processQueue(PatchOptimizer* optimizer, float maxPriority =
 			std::numeric_limits<float>::max());
@@ -88,7 +89,7 @@ private:
 
 	void filter(Leaf<Ppatch3d>* cell);
 	void extend(Leaf<Ppatch3d>* cell);
-	void refine(Leaf<Ppatch3d>* cell);
+	bool refine(Leaf<Ppatch3d>* cell);
 	void regularize(Leaf<Ppatch3d>* cell);
 	void branch(Leaf<Ppatch3d>* cell);
 

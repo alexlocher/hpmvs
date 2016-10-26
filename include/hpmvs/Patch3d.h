@@ -71,6 +71,9 @@ public:
 	// color
 	Eigen::Vector3f color_;
 
+	// dirty flag
+	bool dirty_;
+
 	// access functions
 	inline float x() const {return center_[0];}
 	inline float y() const {return center_[1];}

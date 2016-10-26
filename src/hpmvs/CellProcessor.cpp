@@ -177,9 +177,9 @@ void CellProcessor::extend(Leaf<Ppatch3d>* cell) {
 	p->expanded_ = true;
 }
 
-void CellProcessor::refine(Leaf<Ppatch3d>* cell) {
+bool CellProcessor::refine(Leaf<Ppatch3d>* cell) {
 	if (cell->empty())
-		return;
+		return false;
 	// check the neighboring cells
 	Ppatch3d& p = cell->data[0];
 
@@ -204,6 +204,7 @@ void CellProcessor::refine(Leaf<Ppatch3d>* cell) {
 		scene_p->setDepths(*cell->data[0], true);
 		ptree->remove(cell);
 	}
+	return patchGood;
 }
 
 void CellProcessor::branch(Leaf<Ppatch3d>* cell) {
@@ -419,7 +420,7 @@ void CellProcessor::processCell(Leaf<Ppatch3d>* cell, float priority) {
 }
 
 void CellProcessor::initFromTree(DynOctTree<Ppatch3d>* tree,
-		std::function<void(Ppatch3d, const float)>* borderPatch) {
+		std::function<void(Ppatch3d, const float)>* borderPatch, bool skip_clean) {
 	// not used anymore:
 	const int minLevel = -1;
 	const int maxLevel = std::numeric_limits<int>::max();
@@ -432,10 +433,17 @@ void CellProcessor::initFromTree(DynOctTree<Ppatch3d>* tree,
 		processing_queue.pop();
 
 	// fill the cells into the queue
+	int total = 0, skipped = 0;
 	Leaf_iterator<Ppatch3d> end = tree->end();
 	for (Leaf_iterator<Ppatch3d> leaf = tree->begin(); leaf != end; leaf++) {
 		int nodeLevel = tree->nodeLevel(&(*leaf));
 		if (nodeLevel <= maxLevel && nodeLevel >= minLevel && !leaf->empty()) {
+			total++;
+			// check if this cell is already preprocessed
+			if (skip_clean && leaf->data.size() == 1 && leaf->data[0]->dirty_ == false && leaf->data[0]->expanded_ == true){
+				skipped++;continue;
+			}
+
 			processing_queue.push(std::make_pair(nodeLevel * 10, &(*leaf)));
 			if (f_patchevent) {
 				for (auto& p : leaf->data)

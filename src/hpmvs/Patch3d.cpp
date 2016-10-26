@@ -41,6 +41,8 @@ Patch3d::Patch3d() {
 	priorityReduction_ = 0;
 	expanded_ = false;
 	flatness_ = 0.0;
+
+	dirty_ = false;
 }
 
 
@@ -67,6 +69,7 @@ Patch3d& Patch3d::operator=(const Patch3d &cSource) {
 	priorityReduction_ = cSource.priorityReduction_;
 	expanded_ = cSource.expanded_;
 	flatness_ = cSource.flatness_;
+	dirty_ = cSource.dirty_;
 	return *this;
 }
 

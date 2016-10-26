@@ -141,6 +141,7 @@ public:
 
 	Leaf<Element>* add(Element e);
 	Leaf<Element>* add(Element e, const float width);
+	Leaf<Element>* addSingleCell(Element e);
 	bool addConditional(Element e, const float width, Leaf<Element>** leaf);
 	Leaf<Element>* remove(Element e);
 	Leaf<Element>* remove(Leaf<Element>* leaf);
@@ -349,6 +350,23 @@ DynOctTree<Element>::~DynOctTree() {
 template<typename Element>
 Leaf<Element>* DynOctTree<Element>::add(Element e) {
 	root->at(e->x(), e->y(), e->z())->data.push_back(e);
+}
+
+template<typename Element>
+Leaf<Element>* DynOctTree<Element>::addSingleCell(Element e) {
+	Leaf<Element>* leaf = root->at(e->x(), e->y(), e->z());
+
+	if (leaf->empty())
+		leaf->data.push_back(e);
+	else {
+		std::vector<Element> existing;
+		Branch<Element>* newBranch = leaf->split(existing);
+		existing.push_back(e);
+		delete leaf;
+
+		for (Element& els : existing)
+			newBranch->at(els->x(), els->y(), els->z())->data.push_back(els);
+	}
 }
 
 /**
