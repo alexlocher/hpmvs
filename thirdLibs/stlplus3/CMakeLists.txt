@@ -6,8 +6,8 @@ set(stlplus3_sources
   portability_fixes.cpp
   wildcard.cpp)
 
-add_library(stlplus3 STATIC ${stlplus3_sources})
-install(TARGETS stlplus3
+add_library(stlplus3_hpmvs STATIC ${stlplus3_sources})
+install(TARGETS stlplus3_hpmvs
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib${LIB_SUFFIX}
   ARCHIVE DESTINATION lib${LIB_SUFFIX})

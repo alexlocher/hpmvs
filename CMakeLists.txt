@@ -56,7 +56,7 @@ set(HPMVS_LIBRARIES
 	${GFLAGS_LIBRARIES} 
 	${GLOG_LIBRARIES} 
 	nlopt 
-	stlplus3
+	stlplus3_hpmvs
 	)
 
 # build static library
