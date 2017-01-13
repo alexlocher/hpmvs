@@ -28,6 +28,7 @@ namespace mo3d {
 
 struct HpmvsOptions {
 
+	// image pyramid
 	int MAXLEVEL = 5;
 	int START_LEVEL = 4;
 
@@ -35,7 +36,9 @@ struct HpmvsOptions {
 	float MIN_ANGLE = 10.0f * M_PI / 180.0f;
 
 	// tree
+	int PATCH_INIT_MAXLEVEL = 9;
 	int MAX_TREE_LEVEL = 20;
+	int PATCH_FINAL_MINLEVEL = 8;
 
 	// optimization options
 	int NR_OPTIMIZATION_THREADS = 3;

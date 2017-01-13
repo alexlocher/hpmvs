@@ -179,7 +179,7 @@ bool Scene::initPatches(const NVM_Model& model, const HpmvsOptions& options) {
 	delete oldRoot_p;
 
 	for (auto& p : initPatches) {
-		p->scale_3dx_ = std::max(p->scale_3dx_, width / (1 << 10));
+		p->scale_3dx_ = std::max(p->scale_3dx_, width / (1 << options.PATCH_INIT_MAXLEVEL+1));
 		patchTree_.add(p, p->scale_3dx_);
 		setDepths(*p, false);
 	}

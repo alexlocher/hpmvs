@@ -267,9 +267,9 @@ void CellProcessor::branch(Leaf<Ppatch3d>* cell) {
 	}
 
 	// if we did not successfully branched into at least one new patch, consider
-	// this cell as exhausted
-//	if (newPatches.size() == 0)
-//		return;
+	// this cell as exhausted and keep the existing patch
+	if (ptree->nodeLevel(cell) >= options_p->PATCH_FINAL_MINLEVEL  && newPatches.size() == 0)
+		return;
 
 	// now change the cell
 	vector<Ppatch3d> oldPatch;

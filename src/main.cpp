@@ -41,6 +41,8 @@ DEFINE_string(outdir, "/tmp/hpmvs", "output directory");
 DEFINE_bool(forcelogtostderr, true, "log to stderr");
 DEFINE_int32(subtrees, 100, "min number subtrees the model is split into");
 DEFINE_int32(maxtreelevel, 20, "maximum level of the octree");
+DEFINE_int32(patch_level_final_min, 9, "in case branching stops, min level to keep the lowres patch");
+DEFINE_int32(patch_level_init_max, 9, "the max tree level on which patches are initialized");
 
 template<class Element>
 void getSubTrees(DynOctTree<Element>& tree,
@@ -224,6 +226,8 @@ int main(int argc, char* argv[]) {
 	mo3d::HpmvsOptions options;
 	options.OUTFOLDER = FLAGS_outdir;
 	options.MAX_TREE_LEVEL = FLAGS_maxtreelevel;
+	options.PATCH_FINAL_MINLEVEL = FLAGS_patch_level_final_min;
+	options.PATCH_INIT_MAXLEVEL = FLAGS_patch_level_init_max;
 
 	// launch the actual thing
 	return hp_pmvs(FLAGS_nvm, options);
