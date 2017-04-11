@@ -43,6 +43,7 @@ DEFINE_int32(subtrees, 100, "min number subtrees the model is split into");
 DEFINE_int32(maxtreelevel, 20, "maximum level of the octree");
 DEFINE_int32(patch_level_final_min, 9, "in case branching stops, min level to keep the lowres patch");
 DEFINE_int32(patch_level_init_max, 9, "the max tree level on which patches are initialized");
+DEFINE_bool(more_output, false, "save more intermediate pointclouds");
 
 template<class Element>
 void getSubTrees(DynOctTree<Element>& tree,
@@ -73,7 +74,7 @@ void getSubTrees(DynOctTree<Element>& tree,
 
 		// doesn't make sense to split, if we have to few points
 		if (maxLeafs < 100)
-			return;
+			break;
 
 		std::shared_ptr<DynOctTree<Element> > maxTree = subTrees[maxIndex];
 		std::vector<std::shared_ptr<DynOctTree<Element> >> newSubTrees;
@@ -108,9 +109,11 @@ int hp_pmvs(const std::string& dataset, const mo3d::HpmvsOptions options) {
 
 	scene.addCameras(models[0], options);
 	scene.extractCoVisiblilty(models[0], options);
+	mo3d::HpmvsOptions initOptions = options;
+	initOptions.START_LEVEL = 2; 
 	scene.initPatches(models[0], options);
-//	scene.savePMats(stlplus::create_filespec(options.OUTFOLDER, "pmats", "txt").c_str());
-//	scene.savePoseMats(stlplus::create_filespec(options.OUTFOLDER, "poses", "txt").c_str());
+	if (FLAGS_more_output)
+		scene.patchTree_.toExtPly(stlplus::create_filespec(options.OUTFOLDER, "patches-init" ,"ply").c_str());
 
 	const int nrThreads = omp_get_max_threads();
 
@@ -150,28 +153,12 @@ int hp_pmvs(const std::string& dataset, const mo3d::HpmvsOptions options) {
 		}
 
 		if (trees_changed.load() > 0 && ((int) prio) % 10 < 3) {
-//			scene.patchTree_.toPly(
-//					stlplus::create_filespec(options.OUTFOLDER,
-//							"tree-" + std::to_string(prio) + "-").c_str(),
-//					false);
-			scene.patchTree_.toExtPly(
+			if (((int) prio) % 10 == 0 || FLAGS_more_output)
+				scene.patchTree_.toExtPly(
 					stlplus::create_filespec(options.OUTFOLDER, "patches-" + std::to_string(prio),
 							"ply").c_str());
 
-			// save depth debug
-//			if (((int) prio) / 10 > 7) {
-//				string depthFolder = stlplus::create_filespec(outfolder,
-//						"afterL" + std::to_string(prio));
-//				if (!stlplus::folder_exists(depthFolder))
-//					stlplus::folder_create(depthFolder);
-//				scene.visualizeDepths(depthFolder.c_str());
-//
-//				// -----------------------------------------
-//				scene.saveAsNVM(depthFolder.c_str());
-//			}
-
 			LOG(INFO)<< "prio " << prio << " finished";
-
 		}
 
 		// are we finished ?
@@ -194,7 +181,7 @@ int hp_pmvs(const std::string& dataset, const mo3d::HpmvsOptions options) {
 //			false);
 	scene.patchTree_.toExtPly(
 			stlplus::create_filespec(options.OUTFOLDER,
-					"patches-" + std::to_string(procTime) + " sec", "ply").c_str());
+					"patches-final", "ply").c_str());
 
 	// -----------------------------------------------------------------
 	return EXIT_SUCCESS;
