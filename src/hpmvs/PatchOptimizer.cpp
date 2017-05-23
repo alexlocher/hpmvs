@@ -20,6 +20,7 @@
 
 #include <set>
 #include <iomanip>
+#include <numeric>
 
 // 3rd party
 #include <nlopt.hpp>
