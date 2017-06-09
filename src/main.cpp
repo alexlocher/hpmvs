@@ -44,6 +44,7 @@ DEFINE_int32(maxtreelevel, 20, "maximum level of the octree");
 DEFINE_int32(patch_level_final_min, 9, "in case branching stops, min level to keep the lowres patch");
 DEFINE_int32(patch_level_init_max, 9, "the max tree level on which patches are initialized");
 DEFINE_bool(more_output, false, "save more intermediate pointclouds");
+DEFINE_bool(only_sphere, false, "only reconstruct points within a sphere around the scene center");
 
 template<class Element>
 void getSubTrees(DynOctTree<Element>& tree,
@@ -215,6 +216,7 @@ int main(int argc, char* argv[]) {
 	options.MAX_TREE_LEVEL = FLAGS_maxtreelevel;
 	options.PATCH_FINAL_MINLEVEL = FLAGS_patch_level_final_min;
 	options.PATCH_INIT_MAXLEVEL = FLAGS_patch_level_init_max;
+	options.FILTER_SCENE_CENTER = FLAGS_only_sphere;
 
 	// launch the actual thing
 	return hp_pmvs(FLAGS_nvm, options);

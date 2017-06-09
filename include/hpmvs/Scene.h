@@ -59,6 +59,8 @@ public:
 	int getLevelSupport(const Patch3d& patch, const int minLevel);
 
 
+	bool getSceneCenter(Eigen::Vector3d& center, double& radius) const;
+
 
 	//bool loadFromNVM(const std::string& nvm_fn, const HpmvsOptions& options);
 
