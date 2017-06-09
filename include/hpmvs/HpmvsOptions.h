@@ -36,6 +36,7 @@ struct HpmvsOptions {
 	float MIN_ANGLE = 10.0f * M_PI / 180.0f;
 
 	// tree
+	bool FILTER_SCENE_CENTER = false;
 	int PATCH_INIT_MAXLEVEL = 9;
 	int MAX_TREE_LEVEL = 20;
 	int PATCH_FINAL_MINLEVEL = 8;

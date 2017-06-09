@@ -20,6 +20,7 @@
 
 #include <hpmvs/PatchOptimizer.h>
 #include <hpmvs/Scene.h>
+#include <hpmvs/Triangulation.hpp>
 
 #include <chrono>
 
@@ -101,11 +102,24 @@ bool Scene::initPatches(const NVM_Model& model, const HpmvsOptions& options) {
 
 	std::vector<Ppatch3d> initPatches;
 
+	Eigen::Vector3d sceneCenter;
+	double sceneRadius;
+	bool validSceneCenter = false;
+	if (options.FILTER_SCENE_CENTER == true)
+		validSceneCenter = getSceneCenter(sceneCenter, sceneRadius);
+
+
 	// loop through the points in the nvm_model
 	const size_t nPts = model.points.size();
 #pragma omp parallel for
 	for (int ii = 0; ii < nPts; ii++) {
 		const NVM_Point& pt = model.points[ii];
+
+		if (validSceneCenter){
+			if ((pt.xyz - sceneCenter).norm() > sceneRadius)
+				continue;
+		}
+
 		Ppatch3d ppatch(new Patch3d);
 		ppatch->center_.head(3) = pt.xyz.cast<float>();
 		ppatch->center_[3] = 1.0;
@@ -188,6 +202,37 @@ bool Scene::initPatches(const NVM_Model& model, const HpmvsOptions& options) {
 
 	// debug
 	// visualizeDepths("/tmp");
+
+	return true;
+
+}
+
+bool Scene::getSceneCenter(Eigen::Vector3d& center, double& radius) const {
+
+	std::vector<Eigen::Vector3d> rays;
+	std::vector<Eigen::Vector3d> origins;
+	for (const auto& cam : cameras_) {
+		rays.emplace_back(cam.oAxis_.head<3>().cast<double>().normalized());
+		origins.emplace_back(cam.center_.cast<double>().hnormalized());
+	}
+	if (rays.size() == 0)
+		return false;
+
+	Eigen::Vector4d center_homog;
+	if (!TriangulateMidpoint(origins, rays, &center_homog))
+		return false;
+
+	center = center_homog.hnormalized();
+
+	// median distance
+	std::vector<double> dists;
+	for (const auto& c : origins)
+		dists.emplace_back((center - c).norm());
+	std::sort(dists.begin(), dists.end());
+	// radius = dists[dists.size() / 2]; // median
+	radius = dists[dists.size() - 1]; // max;
+
+	LOG(INFO)<< "scene center: [" << center.transpose() << "] and radius: " << radius;
 
 	return true;
 
