@@ -56,7 +56,7 @@ public:
 
 
 
-	int getLevelSupport(const Patch3d& patch);
+	int getLevelSupport(const Patch3d& patch, const int minLevel);
 
 
 

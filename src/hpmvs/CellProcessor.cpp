@@ -218,7 +218,7 @@ void CellProcessor::branch(Leaf<Ppatch3d>* cell) {
 	int refImg = p->images_[0];
 
 	// get the level support of the patch
-	if (scene_p->getLevelSupport(*p) < 1) {
+	if (scene_p->getLevelSupport(*p, options_p->MINLEVEL) < 1) {
 		// consider this cell as exhausted
 		return;
 	}

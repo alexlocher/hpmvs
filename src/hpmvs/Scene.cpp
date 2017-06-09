@@ -287,11 +287,11 @@ Eigen::Vector3f Scene::getColor(const Patch3d& patch) const {
  * @param patch
  * @return
  */
-int Scene::getLevelSupport(const Patch3d& patch) {
+int Scene::getLevelSupport(const Patch3d& patch, const int minLevel) {
 	int nrImgs = 0;
 
 	for (int imgIdx : patch.images_) {
-		if (std::round(cameras_[imgIdx].getLevel(patch.center_, patch.scale_3dx_)) > 0)
+		if (std::round(cameras_[imgIdx].getLevel(patch.center_, patch.scale_3dx_)) >  minLevel)
 			nrImgs++;
 	}
 

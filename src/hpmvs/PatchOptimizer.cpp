@@ -240,7 +240,7 @@ bool PatchOptimizer::addImages() {
 
 		// make sure we don't respect to small images
 		int imgLevel = std::round(camera_p[covisImg].getLevel(pCenter_, pScale_));
-		if (imgLevel < 0 || imgLevel >= options_p->MAXLEVEL - 2)
+		if (imgLevel < options_p->MINLEVEL || imgLevel >= options_p->MAXLEVEL - 2)
 			continue;
 
 		// check the patche's visibility in the image

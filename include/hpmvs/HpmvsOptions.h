@@ -30,6 +30,7 @@ struct HpmvsOptions {
 
 	// image pyramid
 	int MAXLEVEL = 5;
+	int MINLEVEL = 0;
 	int START_LEVEL = 4;
 
 	float MAX_ANGLE = 60.0f * M_PI / 180.0f;
