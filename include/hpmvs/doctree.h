@@ -151,7 +151,7 @@ public:
 	inline int nodeLevel(const Cell* node) const;
 
 	void toPly(const char*, bool noScalar = true);
-	void toExtPly(const char*, bool binary = false);
+	void toExtPly(const char*, bool binary = false,	bool normal = true,	bool scale = true, bool visibility = true);
 
 	std::list<int> pathToRoot(const Cell* node);
 	std::vector<int> cellHistogram();
@@ -523,7 +523,8 @@ void DynOctTree<Element>::getSubTrees(std::vector<std::shared_ptr<DynOctTree<Ele
 }
 
 template<typename Element>
-void DynOctTree<Element>::toExtPly(const char* name, bool binary) {
+void DynOctTree<Element>::toExtPly(const char* name,bool binary,bool normal,
+																		bool scale,	bool visibility) {
 
 	// grab the patches
 	std::vector<Element> patches;
@@ -551,15 +552,20 @@ void DynOctTree<Element>::toExtPly(const char* name, bool binary) {
 	pFile << "property float x" << std::endl;
 	pFile << "property float y" << std::endl;
 	pFile << "property float z" << std::endl;
-	pFile << "property float nx" << std::endl;
-	pFile << "property float ny" << std::endl;
-	pFile << "property float nz" << std::endl;
+	if (normal){
+		pFile << "property float nx" << std::endl;
+		pFile << "property float ny" << std::endl;
+		pFile << "property float nz" << std::endl;
+	}
 	pFile << "property uchar red" << std::endl;
 	pFile << "property uchar green" << std::endl;
 	pFile << "property uchar blue" << std::endl;
-	pFile << "property float scalar_scale" << std::endl;
-	pFile << "element point_visibility " << (int) patches.size() << std::endl;
-	pFile << "property list uint uint visible_cameras" << std::endl;
+	if (scale)
+		pFile << "property float scalar_scale" << std::endl;
+	if (visibility){
+		pFile << "element point_visibility " << (int) patches.size() << std::endl;
+		pFile << "property list uint uint visible_cameras" << std::endl;
+	}
 	pFile << "end_header" << std::endl;
 	pFile.close();
 
@@ -572,36 +578,43 @@ void DynOctTree<Element>::toExtPly(const char* name, bool binary) {
 			Eigen::Vector3f v(p->x(), p->y(), p->z());
 			pData.write((char*) v.data(), 3 * sizeof(float));
 
-			v = p->normal_.head(3);
-			pData.write((char*) v.data(), 3 * sizeof(float));
+			if (normal){
+				v = p->normal_.head(3);
+				pData.write((char*) v.data(), 3 * sizeof(float));
+			}
 
 			Eigen::Matrix<unsigned char, 3, 1> c(p->color_[0], p->color_[1], p->color_[2]);
 			pData.write((char*) c.data(), 3 * sizeof(unsigned char));
 
-			pData.write((char*) &p->scale_3dx_, sizeof(p->scale_3dx_));
+			if (scale)
+				pData.write((char*) &p->scale_3dx_, sizeof(p->scale_3dx_));
 
 		} else {
 			pData << p->x() << " " << p->y() << " " << p->z() << " ";
-			pData << p->normal_[0] << " " << p->normal_[1] << " " << p->normal_[2] << " ";
+			if (normal)
+				pData << p->normal_[0] << " " << p->normal_[1] << " " << p->normal_[2] << " ";
 			pData << (int) p->color_[0] << " " << (int) p->color_[1] << " " << (int) p->color_[2]
 					<< " ";
-			pData << p->scale_3dx_ << " ";
+			if (scale)
+				pData << p->scale_3dx_ << " ";
 			pData << std::endl;
 		}
 	}
 
 	// now output the visibility
-	for (const auto& p : patches) {
-		if (binary) {
-			uint32_t nrImgs = p->images_.size();
-			pData.write((char*) &nrImgs, sizeof(uint32_t));
-			for (uint32_t imgId : p->images_)
-				pData.write((char*)&imgId, sizeof(uint32_t));
-		} else {
-			pData << (int) p->images_.size() << " ";
-			for (int imgId : p->images_)
-				pData << (uint32_t) imgId << " ";
-			pData << std::endl;
+	if (visibility){
+		for (const auto& p : patches) {
+			if (binary) {
+				uint32_t nrImgs = p->images_.size();
+				pData.write((char*) &nrImgs, sizeof(uint32_t));
+				for (uint32_t imgId : p->images_)
+					pData.write((char*)&imgId, sizeof(uint32_t));
+			} else {
+				pData << (int) p->images_.size() << " ";
+				for (int imgId : p->images_)
+					pData << (uint32_t) imgId << " ";
+				pData << std::endl;
+			}
 		}
 	}
 	pData.flush();

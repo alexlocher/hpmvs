@@ -44,6 +44,7 @@ DEFINE_int32(maxtreelevel, 20, "maximum level of the octree");
 DEFINE_int32(patch_level_final_min, 9, "in case branching stops, min level to keep the lowres patch");
 DEFINE_int32(patch_level_init_max, 9, "the max tree level on which patches are initialized");
 DEFINE_bool(more_output, false, "save more intermediate pointclouds");
+DEFINE_int32(light_output, 0, "also save a leightweight pointcloud as output (provided int is the level of the output cloud e.g. 80)");
 DEFINE_bool(only_sphere, false, "only reconstruct points within a sphere around the scene center");
 
 template<class Element>
@@ -111,7 +112,7 @@ int hp_pmvs(const std::string& dataset, const mo3d::HpmvsOptions options) {
 	scene.addCameras(models[0], options);
 	scene.extractCoVisiblilty(models[0], options);
 	mo3d::HpmvsOptions initOptions = options;
-	initOptions.START_LEVEL = 2; 
+	initOptions.START_LEVEL = 2;
 	scene.initPatches(models[0], options);
 	if (FLAGS_more_output)
 		scene.patchTree_.toExtPly(stlplus::create_filespec(options.OUTFOLDER, "patches-init" ,"ply").c_str());
@@ -159,6 +160,14 @@ int hp_pmvs(const std::string& dataset, const mo3d::HpmvsOptions options) {
 					stlplus::create_filespec(options.OUTFOLDER, "patches-" + std::to_string(prio),
 							"ply").c_str());
 
+			if (((int)prio) == FLAGS_light_output && FLAGS_light_output > 0){
+				scene.patchTree_.toExtPly(stlplus::create_filespec(options.OUTFOLDER, "patches-light","ply").c_str(),
+						true, // binary
+						false, // no normals
+						false, // no scale
+						false); // no visibility
+			}
+
 			LOG(INFO)<< "prio " << prio << " finished";
 		}
 
@@ -183,6 +192,14 @@ int hp_pmvs(const std::string& dataset, const mo3d::HpmvsOptions options) {
 	scene.patchTree_.toExtPly(
 			stlplus::create_filespec(options.OUTFOLDER,
 					"patches-final", "ply").c_str());
+
+	if (FLAGS_light_output > 0){
+		scene.patchTree_.toExtPly(stlplus::create_filespec(options.OUTFOLDER, "patches-final-light","ply").c_str(),
+				true, // binary
+				false, // no normals
+				false, // no scale
+				false); // no visibility
+	}
 
 	// -----------------------------------------------------------------
 	return EXIT_SUCCESS;
