@@ -57,7 +57,7 @@ public:
 	virtual ~Image();
 
 	void init(const mo3d::NVM_Camera* cam, const int maxLevel = 1);
-	bool load();
+	bool load(const bool ignoreDistortion = false);
 
 	// confusing because interleaved
 	inline int getWidth(int level = 0) const  {return images_[level].height();}

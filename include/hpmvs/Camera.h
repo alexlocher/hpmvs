@@ -26,12 +26,16 @@
 
 namespace mo3d {
 
+class PinholeIntrinsics;
+
 class Camera {
 public:
 	Camera();
 	virtual ~Camera();
 
 	void init(const mo3d::NVM_Camera* cam, int width, int height, const int maxLevel = 1);
+
+	void init(const mo3d::NVM_Camera* cam, const mo3d::PinholeIntrinsics* intrinsics, const int maxLevel = 1);
 
 	/**
 	 * Project a 3d world point in homogeneous coordinates into the camera space and
@@ -42,7 +46,7 @@ public:
 	 * @param level
 	 * @return
 	 */
-	inline Eigen::Vector3f project(const Eigen::Vector4f& coord, const int level) const {
+	inline Eigen::Vector3f project_nodistortion(const Eigen::Vector4f& coord, const int level) const {
 		if (level >= projection_.size()){
 			std::cerr << "Illegal level access in Camera";
 			exit(1);
@@ -61,20 +65,53 @@ public:
 		return result;
 	}
 
-	inline Eigen::Vector3f project3(const Eigen::Vector3f& coord, const int level) const {
-		Eigen::Vector4f hcoord(coord.homogeneous());
-		return project(hcoord,level);
-	}
+
 
 	/**
 	 * Projects a 3D worldpoint into the camera space, without any additional checks
 	 *
 	 * @param coord
 	 * @param level
-	 * @return
+	 * @return vector [pixelX, pixelY, depth]
 	 */
 	inline Eigen::Vector3f mult(const Eigen::Vector4f& coord, const int level) const {
-		return projection_[level] * coord;
+		if (r1_ * r2_ > 0) {
+			const float depth = pMat_.row(2).dot(coord);
+			Eigen::Vector3f pix = projectDistortPoint(coord, level);
+			pix.z() = depth;
+			return pix;
+		} else
+			return projection_[level] * coord;
+	}
+
+
+	inline Eigen::Vector3f projectDistortPoint(const Eigen::Vector4f& coord, const int level) const {
+		Eigen::Vector3f camSpace = pMat_ * coord;
+		const float depth = camSpace.z();
+		if (depth <= 0.0f)
+			return Eigen::Vector3f(-0xffff, -0xffff, -1.0f);
+		camSpace /= depth;
+
+		// now distort the point
+		const float r_sq = camSpace.head<2>().squaredNorm();
+		const float d = 1.0 + r_sq * (r1_ + r2_ * r_sq);
+		camSpace.head<2>() *= d;
+
+		// and convert to pixel space
+		Eigen::Vector3f distorted_pixel = kMat_[level] * camSpace;
+		return distorted_pixel;
+	}
+
+	inline Eigen::Vector3f project(const Eigen::Vector4f& coord, const int level) const {
+		if (r1_ * r2_ > 0)
+			return projectDistortPoint(coord,level);
+		else
+			return project_nodistortion(coord,level);
+	}
+
+	inline Eigen::Vector3f project3_(const Eigen::Vector3f& coord, const int level) const {
+		Eigen::Vector4f hcoord(coord.homogeneous());
+		return project(hcoord,level);
 	}
 
 	int getLevels() const { return projection_.size(); }
@@ -103,6 +140,12 @@ public:
 
 	// average pixel scale
 	float ipscale_;
+
+	// projection matrix from world to camera space
+	Eigen::Matrix<float,3,4> pMat_;
+
+	// distortion
+	float r1_, r2_;
 };
 
 } /* namespace mo3d */

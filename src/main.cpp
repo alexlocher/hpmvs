@@ -27,6 +27,7 @@
 
 #include <stlplus3/file_system.hpp>
 
+#include <hpmvs/PinholeIntrinsics.h>
 #include <hpmvs/NVMReader.h>
 #include <hpmvs/CellProcessor.h>
 #include <hpmvs/Scene.h>
@@ -46,6 +47,8 @@ DEFINE_int32(patch_level_init_max, 9, "the max tree level on which patches are i
 DEFINE_bool(more_output, false, "save more intermediate pointclouds");
 DEFINE_int32(light_output, 0, "also save a leightweight pointcloud as output (provided int is the level of the output cloud e.g. 80)");
 DEFINE_bool(only_sphere, false, "only reconstruct points within a sphere around the scene center");
+
+DEFINE_string(intrinsics, "", "intrinsics input file");
 
 template<class Element>
 void getSubTrees(DynOctTree<Element>& tree,
@@ -95,7 +98,21 @@ void getSubTrees(DynOctTree<Element>& tree,
 	}
 }
 
-int hp_pmvs(const std::string& dataset, const mo3d::HpmvsOptions options) {
+
+void loadIntrinsics(const std::string& filename, std::map<std::string, mo3d::PinholeIntrinsics>& intrinsics){
+	if (filename.empty() || !stlplus::file_readable(filename))
+		return;
+
+	std::ifstream is(filename);
+	mo3d::PinholeIntrinsics i;
+	while(is >> i)
+		intrinsics[i.imgName] = i;
+
+	LOG(INFO) << "loaded " << intrinsics.size() << " intrinsics from >" << filename << "<";
+}
+
+
+int hp_pmvs(const std::string& dataset, const std::string& intrinsicsFile, const mo3d::HpmvsOptions options) {
 
 	// create a scene, holding everything together
 	mo3d::Scene scene;
@@ -109,7 +126,10 @@ int hp_pmvs(const std::string& dataset, const mo3d::HpmvsOptions options) {
 		return EXIT_FAILURE;
 	}
 
-	scene.addCameras(models[0], options);
+	std::map<std::string, mo3d::PinholeIntrinsics> intrinsicMap;
+	loadIntrinsics(intrinsicsFile, intrinsicMap);
+
+	scene.addCameras(models[0], intrinsicMap, options);
 	scene.extractCoVisiblilty(models[0], options);
 	mo3d::HpmvsOptions initOptions = options;
 	initOptions.START_LEVEL = 2;
@@ -221,11 +241,16 @@ int main(int argc, char* argv[]) {
 																									<< "Unable to create output folder <"
 																									<< FLAGS_outdir
 																									<< ">";
+	if (!FLAGS_intrinsics.empty() && !stlplus::file_readable(FLAGS_intrinsics)){
+		LOG(WARNING) << "intrinsics file >" << FLAGS_intrinsics << "< not readable -> ignore it";
+		FLAGS_intrinsics = "";
+	}
 
 	// output some information
 	LOG(INFO)<< "dataset        : <" << FLAGS_nvm << ">";
 	LOG(INFO)<< "out directory  : <" << FLAGS_outdir << ">";
 	LOG(INFO)<< "number threads : <" << omp_get_max_threads() << ">";
+	LOG(INFO)<< "intrinsics file: <" << FLAGS_intrinsics << ">";
 
 	// set the options
 	mo3d::HpmvsOptions options;
@@ -236,5 +261,5 @@ int main(int argc, char* argv[]) {
 	options.FILTER_SCENE_CENTER = FLAGS_only_sphere;
 
 	// launch the actual thing
-	return hp_pmvs(FLAGS_nvm, options);
+	return hp_pmvs(FLAGS_nvm, FLAGS_intrinsics, options);
 }

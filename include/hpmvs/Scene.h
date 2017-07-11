@@ -34,6 +34,7 @@
 #include <hpmvs/doctree.h>
 #include <hpmvs/HpmvsOptions.h>
 #include <hpmvs/NVMReader.h>
+#include <hpmvs/PinholeIntrinsics.h>
 
 
 namespace mo3d {
@@ -43,7 +44,7 @@ public:
 	Scene();
 	virtual ~Scene();
 
-	bool addCameras(const NVM_Model& model, const HpmvsOptions& options);
+	bool addCameras(const NVM_Model& model, const std::map<std::string,PinholeIntrinsics>& intrinsics, const HpmvsOptions& options);
 
 	bool initPatches(const NVM_Model& model, const HpmvsOptions& options);
 

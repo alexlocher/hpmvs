@@ -38,7 +38,7 @@ void Image::init(const mo3d::NVM_Camera* cam, const int maxLevel) {
 	maxLevel_ = std::max(1, maxLevel);
 }
 
-bool Image::load() {
+bool Image::load(const bool ignoreDistortion) {
 	images_.clear();
 	images_.resize(maxLevel_ + 1);
 
@@ -48,7 +48,7 @@ bool Image::load() {
 		return false;
 
 	// check if we have to undistort
-	if (k1_ != 0)
+	if (k1_ != 0 && ignoreDistortion == false)
 		if (!undistort())
 			return false;
 

@@ -39,9 +39,12 @@ Scene::Scene() {
 Scene::~Scene() {
 }
 
-bool Scene::addCameras(const NVM_Model& model, const HpmvsOptions& options) {
+bool Scene::addCameras(const NVM_Model& model, const std::map<std::string,PinholeIntrinsics>& intrinsicMap, const HpmvsOptions& options) {
+	const bool haveIntrinsics = !intrinsicMap.empty();
+
 
 	// iterate through the cameras and create corresponding objects
+	std::vector<PinholeIntrinsics> intrinsicVec;
 	for (const NVM_Camera& cam : model.cameras) {
 		int newCamId = cameras_.size();
 
@@ -51,6 +54,13 @@ bool Scene::addCameras(const NVM_Model& model, const HpmvsOptions& options) {
 		m_depth_lock.emplace_back();
 		m_depths.emplace_back();
 		dict_[cam.filename] = newCamId;
+
+		if (haveIntrinsics){
+			std::string imgName = stlplus::filename_part(cam.filename);
+			const auto it = intrinsicMap.find(imgName);
+			CHECK(it != intrinsicMap.end()) << "did not find intrinsics for img >" << imgName << "<";
+			intrinsicVec.emplace_back(it->second);
+		}
 	}
 
 	// load the images
@@ -66,9 +76,12 @@ bool Scene::addCameras(const NVM_Model& model, const HpmvsOptions& options) {
 
 		// populate them
 		images_[camId].init(&model.cameras[ii], options.MAXLEVEL);
-		images_[camId].load();
+		images_[camId].load(haveIntrinsics);
 
-		cameras_[camId].init(&model.cameras[ii], images_[camId].getWidth(),
+		if (haveIntrinsics)
+			cameras_[camId].init(&model.cameras[ii],&intrinsicVec[ii], options.MAXLEVEL);
+		else
+			cameras_[camId].init(&model.cameras[ii], images_[camId].getWidth(),
 				images_[camId].getHeight(), options.MAXLEVEL);
 
 		// corresponding depth image
