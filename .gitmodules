@@ -1,0 +1,3 @@
+[submodule "thirdLibs/nvmtools"]
+	path = thirdLibs/nvmtools
+	url = https://github.com/alexlocher/nvmtools.git

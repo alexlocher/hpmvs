@@ -17,6 +17,7 @@ find_package(Glog REQUIRED)
 
 ADD_SUBDIRECTORY(thirdLibs/nlopt-2.4.2)
 ADD_SUBDIRECTORY(thirdLibs/stlplus3)
+ADD_SUBDIRECTORY(thirdLibs/nvmtools)
 
 set(HPMVS_SRC
 	src/hpmvs/NVMReader.cpp
