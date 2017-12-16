@@ -44,19 +44,18 @@
 #define WIN32_LEAN_AND_MEAN
 #include <CImg.h>
 
-
+namespace nvmtools {
+	class NVM_Camera;
+}
 
 namespace mo3d {
-
-// forward declaration
-class NVM_Camera;
 
 class Image {
 public:
 	Image();
 	virtual ~Image();
 
-	void init(const mo3d::NVM_Camera* cam, const int maxLevel = 1);
+	void init(const nvmtools::NVM_Camera* cam, const int maxLevel = 1);
 	bool load(const bool ignoreDistortion = false);
 
 	// confusing because interleaved

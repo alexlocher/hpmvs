@@ -27,14 +27,13 @@
 #include <chrono>
 
 #include <Eigen/Dense>
+#include <nvmtools/NVMFile.h>
 
 #include <hpmvs/Image.h>
 #include <hpmvs/Camera.h>
 #include <hpmvs/Patch3d.h>
 #include <hpmvs/doctree.h>
 #include <hpmvs/HpmvsOptions.h>
-#include <hpmvs/NVMReader.h>
-#include <hpmvs/PinholeIntrinsics.h>
 
 
 namespace mo3d {
@@ -44,11 +43,11 @@ public:
 	Scene();
 	virtual ~Scene();
 
-	bool addCameras(const NVM_Model& model, const std::map<std::string,PinholeIntrinsics>& intrinsics, const HpmvsOptions& options);
+	bool addCameras(const nvmtools::NVM_Model& model, const HpmvsOptions& options);
 
-	bool initPatches(const NVM_Model& model, const HpmvsOptions& options);
+	bool initPatches(const nvmtools::NVM_Model& model, const HpmvsOptions& options);
 
-	bool extractCoVisiblilty(const NVM_Model& model, const HpmvsOptions& options);
+	bool extractCoVisiblilty(const nvmtools::NVM_Model& model, const HpmvsOptions& options);
 
 
 	Eigen::Vector3f getColor(const Patch3d& patch) const;

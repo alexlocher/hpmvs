@@ -39,13 +39,10 @@ Scene::Scene() {
 Scene::~Scene() {
 }
 
-bool Scene::addCameras(const NVM_Model& model, const std::map<std::string,PinholeIntrinsics>& intrinsicMap, const HpmvsOptions& options) {
-	const bool haveIntrinsics = !intrinsicMap.empty();
-
+bool Scene::addCameras(const nvmtools::NVM_Model& model, const HpmvsOptions& options) {
 
 	// iterate through the cameras and create corresponding objects
-	std::vector<PinholeIntrinsics> intrinsicVec;
-	for (const NVM_Camera& cam : model.cameras) {
+	for (const nvmtools::NVM_Camera& cam : model.cameras) {
 		int newCamId = cameras_.size();
 
 		// create new objects
@@ -54,13 +51,6 @@ bool Scene::addCameras(const NVM_Model& model, const std::map<std::string,Pinhol
 		m_depth_lock.emplace_back();
 		m_depths.emplace_back();
 		dict_[cam.filename] = newCamId;
-
-		if (haveIntrinsics){
-			std::string imgName = stlplus::filename_part(cam.filename);
-			const auto it = intrinsicMap.find(imgName);
-			CHECK(it != intrinsicMap.end()) << "did not find intrinsics for img >" << imgName << "<";
-			intrinsicVec.emplace_back(it->second);
-		}
 	}
 
 	// load the images
@@ -76,12 +66,9 @@ bool Scene::addCameras(const NVM_Model& model, const std::map<std::string,Pinhol
 
 		// populate them
 		images_[camId].init(&model.cameras[ii], options.MAXLEVEL);
-		images_[camId].load(haveIntrinsics);
+		images_[camId].load(true); // ignore distortion 
 
-		if (haveIntrinsics)
-			cameras_[camId].init(&model.cameras[ii],&intrinsicVec[ii], options.MAXLEVEL);
-		else
-			cameras_[camId].init(&model.cameras[ii], images_[camId].getWidth(),
+		cameras_[camId].init(&model.cameras[ii], images_[camId].getWidth(),
 				images_[camId].getHeight(), options.MAXLEVEL);
 
 		// corresponding depth image
@@ -100,7 +87,7 @@ bool Scene::addCameras(const NVM_Model& model, const std::map<std::string,Pinhol
 	return true;
 }
 
-bool Scene::initPatches(const NVM_Model& model, const HpmvsOptions& options) {
+bool Scene::initPatches(const nvmtools::NVM_Model& model, const HpmvsOptions& options) {
 	int cSize = 2;
 
 	// create optimizer instances
@@ -126,7 +113,7 @@ bool Scene::initPatches(const NVM_Model& model, const HpmvsOptions& options) {
 	const size_t nPts = model.points.size();
 #pragma omp parallel for
 	for (int ii = 0; ii < nPts; ii++) {
-		const NVM_Point& pt = model.points[ii];
+		const nvmtools::NVM_Point& pt = model.points[ii];
 
 		if (validSceneCenter){
 			if ((pt.xyz - sceneCenter).norm() > sceneRadius)
@@ -144,7 +131,7 @@ bool Scene::initPatches(const NVM_Model& model, const HpmvsOptions& options) {
 		Eigen::Vector4f commonCenter = Eigen::Vector4f::Zero();
 
 		// add all measurements to the patch
-		for (const NVM_Measurement& m : pt.measurements) {
+		for (const nvmtools::NVM_Measurement& m : pt.measurements) {
 //			int idx = dict_[m.imgIndex];
 			int idx = m.imgIndex;
 			if (idx < 0)
@@ -251,7 +238,7 @@ bool Scene::getSceneCenter(Eigen::Vector3d& center, double& radius) const {
 
 }
 
-bool Scene::extractCoVisiblilty(const NVM_Model& model, const HpmvsOptions& options) {
+bool Scene::extractCoVisiblilty(const nvmtools::NVM_Model& model, const HpmvsOptions& options) {
 
 	const char* outVisDataFile = "/tmp/testvis.dat";
 
@@ -263,9 +250,9 @@ bool Scene::extractCoVisiblilty(const NVM_Model& model, const HpmvsOptions& opti
 	Eigen::MatrixXi vis = Eigen::MatrixXi::Zero(nCams, nCams);
 
 	// fill visibility information
-	for (const mo3d::NVM_Point& p : model.points) {
+	for (const nvmtools::NVM_Point& p : model.points) {
 		std::vector<int> visIds;
-		for (const NVM_Measurement& m : p.measurements) {
+		for (const nvmtools::NVM_Measurement& m : p.measurements) {
 			int camId = m.imgIndex;
 			visIds.emplace_back(camId);
 		}
@@ -672,9 +659,9 @@ void Scene::saveAsNVM(const char* folder) {
 	}
 
 	// create an NVM Model out of the scene
-	std::vector<NVM_Model> models(1);
+	std::vector<nvmtools::NVM_Model> models(1);
 	for (int ii = 0; ii < images_.size(); ii++) {
-		NVM_Camera cam;
+		nvmtools::NVM_Camera cam;
 		cam.filename = stlplus::create_filespec("imgs", std::to_string(ii), ".jpg");
 		cam.f = cameras_[ii].kMat_[0](0, 0);
 		cam.c = cameras_[ii].center_.cast<double>().hnormalized();
@@ -685,6 +672,8 @@ void Scene::saveAsNVM(const char* folder) {
 		m.row(2) << cameras_[ii].zAxis_.normalized().cast<double>().transpose();
 		Eigen::Quaterniond rq(m);
 		cam.rq << rq.w(), rq.x(), rq.y(), rq.z();
+
+		cam.intrinsics = cameras_[ii].cameraModel();
 
 		// save it
 		models.back().cameras.push_back(cam);
@@ -697,13 +686,13 @@ void Scene::saveAsNVM(const char* folder) {
 		for (const auto& p : patches) {
 
 			// create a point
-			NVM_Point np;
+			nvmtools::NVM_Point np;
 			np.rgb = p->color_.cast<double>();
 			np.xyz = p->center_.cast<double>().hnormalized();
 
 			// add measurements
 			for (int ii = 0; ii < p->images_.size(); ii++) {
-				NVM_Measurement m;
+				nvmtools::NVM_Measurement m;
 				m.featIndex = 0;
 				m.imgIndex = p->images_[ii];
 
@@ -717,11 +706,13 @@ void Scene::saveAsNVM(const char* folder) {
 		}
 	}
 
+	models.back().version = 4;
 	models.emplace_back();
+	models.back().version = 4;
 
 	// now save the model
 	std::string nvmfile = stlplus::create_filespec(folder, "project", "nvm");
-	NVMReader::saveNVM(nvmfile.c_str(), models);
+	nvmtools::NVMFile::saveNVM(nvmfile.c_str(), models);
 
 }
 

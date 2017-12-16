@@ -27,8 +27,8 @@
 
 #include <stlplus3/file_system.hpp>
 
-#include <hpmvs/PinholeIntrinsics.h>
-#include <hpmvs/NVMReader.h>
+#include <nvmtools/NVMFile.h>
+
 #include <hpmvs/CellProcessor.h>
 #include <hpmvs/Scene.h>
 
@@ -99,19 +99,6 @@ void getSubTrees(DynOctTree<Element>& tree,
 }
 
 
-void loadIntrinsics(const std::string& filename, std::map<std::string, mo3d::PinholeIntrinsics>& intrinsics){
-	if (filename.empty() || !stlplus::file_readable(filename))
-		return;
-
-	std::ifstream is(filename);
-	mo3d::PinholeIntrinsics i;
-	while(is >> i)
-		intrinsics[i.imgName] = i;
-
-	LOG(INFO) << "loaded " << intrinsics.size() << " intrinsics from >" << filename << "<";
-}
-
-
 int hp_pmvs(const std::string& dataset, const std::string& intrinsicsFile, const mo3d::HpmvsOptions options) {
 
 	// create a scene, holding everything together
@@ -119,17 +106,14 @@ int hp_pmvs(const std::string& dataset, const std::string& intrinsicsFile, const
 	std::vector<mo3d::Ppatch3d> initPatches_new;
 
 	// Initialize the scene from the nvm model
-	std::vector<mo3d::NVM_Model> models;
-	mo3d::NVMReader::readFile(dataset.c_str(), models, true);
+	std::vector<nvmtools::NVM_Model> models;
+	nvmtools::NVMFile::readFile(dataset.c_str(), models, true);
 	if (models.empty()) {
 		LOG(WARNING)<< "no models found in NVM file";
 		return EXIT_FAILURE;
 	}
 
-	std::map<std::string, mo3d::PinholeIntrinsics> intrinsicMap;
-	loadIntrinsics(intrinsicsFile, intrinsicMap);
-
-	scene.addCameras(models[0], intrinsicMap, options);
+	scene.addCameras(models[0], options);
 	scene.extractCoVisiblilty(models[0], options);
 	mo3d::HpmvsOptions initOptions = options;
 	initOptions.START_LEVEL = 2;
@@ -229,7 +213,7 @@ int main(int argc, char* argv[]) {
 	google::InitGoogleLogging(argv[0]);
 	FLAGS_colorlogtostderr = true;
 	FLAGS_logtostderr = FLAGS_forcelogtostderr;
-	HPMVS_GFLAGS_NAMESPACE::ParseCommandLineFlags(&argc, &argv, true);
+	gflags::ParseCommandLineFlags(&argc, &argv, true);
 
 	LOG(INFO)<< " =============================================================== ";
 	LOG(INFO)<< " ======== welcome to the Progressive Multiview Stereo    ======= ";

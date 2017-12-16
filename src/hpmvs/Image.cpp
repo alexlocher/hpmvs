@@ -19,8 +19,9 @@
 */
 
 #include <hpmvs/Image.h>
-#include <hpmvs/NVMReader.h>
 #include <glog/logging.h>
+
+#include <nvmtools/NVMFile.h>
 
 namespace mo3d {
 
@@ -31,7 +32,7 @@ Image::Image() :
 Image::~Image() {
 }
 
-void Image::init(const mo3d::NVM_Camera* cam, const int maxLevel) {
+void Image::init(const nvmtools::NVM_Camera* cam, const int maxLevel) {
 	path_ = cam->filename;
 	f_ = cam->f;
 	k1_ = cam->r;
