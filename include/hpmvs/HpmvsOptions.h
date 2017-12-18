@@ -46,8 +46,8 @@ struct HpmvsOptions {
 	int NR_OPTIMIZATION_THREADS = 3;
 	int MAX_IMAGES_PER_PATCH = 6;
 	int MIN_IMAGES_PER_PATCH = 3;
-	float NCC_ALPHA_1 = 0.4;
-	float NCC_ALPHA_2 = 0.5; // was 0.7
+	float NCC_ALPHA_1 = 0.6; // was 0.4
+	float NCC_ALPHA_2 = 0.8; // was 0.7
 
 	// test options
 	float DEPTH_TEST_FACTOR = 1.0f;

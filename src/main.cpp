@@ -50,6 +50,9 @@ DEFINE_bool(only_sphere, false, "only reconstruct points within a sphere around 
 
 DEFINE_string(intrinsics, "", "intrinsics input file");
 
+DEFINE_double(ncc1, 0.6 , "patch NCC threshold before optimization (alpha 1)");
+DEFINE_double(ncc2, 0.8 , "patch NCC threshold after optimization (alpha 2)");
+
 template<class Element>
 void getSubTrees(DynOctTree<Element>& tree,
 		std::vector<std::shared_ptr<DynOctTree<Element> > >& subTrees, const int minTrees = 2) {
@@ -243,6 +246,9 @@ int main(int argc, char* argv[]) {
 	options.PATCH_FINAL_MINLEVEL = FLAGS_patch_level_final_min;
 	options.PATCH_INIT_MAXLEVEL = FLAGS_patch_level_init_max;
 	options.FILTER_SCENE_CENTER = FLAGS_only_sphere;
+	options.NCC_ALPHA_1 = FLAGS_ncc1;
+	options.NCC_ALPHA_2 = FLAGS_ncc2;
+
 
 	// launch the actual thing
 	return hp_pmvs(FLAGS_nvm, FLAGS_intrinsics, options);
