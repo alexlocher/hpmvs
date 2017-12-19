@@ -48,8 +48,6 @@ DEFINE_bool(more_output, false, "save more intermediate pointclouds");
 DEFINE_int32(light_output, 0, "also save a leightweight pointcloud as output (provided int is the level of the output cloud e.g. 80)");
 DEFINE_bool(only_sphere, false, "only reconstruct points within a sphere around the scene center");
 
-DEFINE_string(intrinsics, "", "intrinsics input file");
-
 DEFINE_double(ncc1, 0.6 , "patch NCC threshold before optimization (alpha 1)");
 DEFINE_double(ncc2, 0.8 , "patch NCC threshold after optimization (alpha 2)");
 
@@ -102,7 +100,7 @@ void getSubTrees(DynOctTree<Element>& tree,
 }
 
 
-int hp_pmvs(const std::string& dataset, const std::string& intrinsicsFile, const mo3d::HpmvsOptions options) {
+int hp_pmvs(const std::string& dataset, const mo3d::HpmvsOptions options) {
 
 	// create a scene, holding everything together
 	mo3d::Scene scene;
@@ -228,16 +226,11 @@ int main(int argc, char* argv[]) {
 																									<< "Unable to create output folder <"
 																									<< FLAGS_outdir
 																									<< ">";
-	if (!FLAGS_intrinsics.empty() && !stlplus::file_readable(FLAGS_intrinsics)){
-		LOG(WARNING) << "intrinsics file >" << FLAGS_intrinsics << "< not readable -> ignore it";
-		FLAGS_intrinsics = "";
-	}
 
 	// output some information
 	LOG(INFO)<< "dataset        : <" << FLAGS_nvm << ">";
 	LOG(INFO)<< "out directory  : <" << FLAGS_outdir << ">";
 	LOG(INFO)<< "number threads : <" << omp_get_max_threads() << ">";
-	LOG(INFO)<< "intrinsics file: <" << FLAGS_intrinsics << ">";
 
 	// set the options
 	mo3d::HpmvsOptions options;
@@ -249,7 +242,6 @@ int main(int argc, char* argv[]) {
 	options.NCC_ALPHA_1 = FLAGS_ncc1;
 	options.NCC_ALPHA_2 = FLAGS_ncc2;
 
-
 	// launch the actual thing
-	return hp_pmvs(FLAGS_nvm, FLAGS_intrinsics, options);
+	return hp_pmvs(FLAGS_nvm, options);
 }

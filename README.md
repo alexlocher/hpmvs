@@ -49,6 +49,7 @@ then you should be able to get and compile hpmvs with:
 ```
 git clone https://github.com/alexlocher/hpmvs
 cd hpmvs
+git submodule init && git submodule update
 mkdir build && cd build
 cmake ..
 make -j4
