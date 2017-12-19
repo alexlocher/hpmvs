@@ -84,8 +84,6 @@ public:
 	void visualizeDepths(const char* folder);
 
 	void saveAsNVM(const char* folder);
-	void savePMats(const char* file);
-	void savePoseMats(const char* file);
 	// --------------------------------------------------------------------------------
 
 	// --------------------------------------------------------------------------------

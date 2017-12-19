@@ -663,7 +663,7 @@ void Scene::saveAsNVM(const char* folder) {
 	for (int ii = 0; ii < images_.size(); ii++) {
 		nvmtools::NVM_Camera cam;
 		cam.filename = stlplus::create_filespec("imgs", std::to_string(ii), ".jpg");
-		cam.f = cameras_[ii].kMat_[0](0, 0);
+		cam.f = cameras_[ii].cameraModel()->focal();
 		cam.c = cameras_[ii].center_.cast<double>().hnormalized();
 		cam.r = 0;
 		Eigen::Matrix3d m(Eigen::Matrix3d::Identity());
@@ -713,32 +713,6 @@ void Scene::saveAsNVM(const char* folder) {
 	// now save the model
 	std::string nvmfile = stlplus::create_filespec(folder, "project", "nvm");
 	nvmtools::NVMFile::saveNVM(nvmfile.c_str(), models);
-
-}
-
-void Scene::savePMats(const char* file) {
-	std::ofstream of(file, std::ofstream::out);
-	Eigen::IOFormat fmt(Eigen::FullPrecision, Eigen::DontAlignCols, ", ", "\n");
-	for (int ii = 0; ii < cameras_.size(); ii++) {
-		of << cameras_[ii].projection_[0].format(fmt) << std::endl;
-	}
-	of.close();
-}
-
-void Scene::savePoseMats(const char* file) {
-	std::ofstream of(file, std::ofstream::out);
-	Eigen::IOFormat fmt(Eigen::FullPrecision, Eigen::DontAlignCols, ", ", "\n");
-	for (int ii = 0; ii < cameras_.size(); ii++) {
-		Eigen::Matrix3d m(Eigen::Matrix3d::Identity());
-		m.row(0) << cameras_[ii].xAxis_.normalized().cast<double>().transpose();
-		m.row(1) << cameras_[ii].yAxis_.normalized().cast<double>().transpose();
-		m.row(2) << cameras_[ii].zAxis_.normalized().cast<double>().transpose();
-		Eigen::Matrix<double, 3, 4> pose;
-		pose << m, cameras_[ii].center_.cast<double>().head(3);
-
-		of << pose.format(fmt) << std::endl;
-	}
-	of.close();
 
 }
 

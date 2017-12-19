@@ -141,7 +141,7 @@ public:
 
 	std::shared_ptr<nvmtools::CameraModel> cameraModel() { return cameraModel_;}
 
-public:
+private:
 
 	std::string name_;
 
@@ -150,7 +150,14 @@ public:
 
 	// internal calibration for every level
 	std::vector<Eigen::Matrix<float, 3, 3> > kMat_;
+	
+	// projection matrix from world to camera space
+	Eigen::Matrix<float,3,4> pMat_;
 
+	// intrinsic model
+	std::shared_ptr<nvmtools::CameraModel> cameraModel_;
+
+public:
 	// position of the camera (optical center)
 	Eigen::Vector4f center_;
 
@@ -163,11 +170,6 @@ public:
 	// average pixel scale
 	float ipscale_;
 
-	// projection matrix from world to camera space
-	Eigen::Matrix<float,3,4> pMat_;
-
-	// intrinsic model
-	std::shared_ptr<nvmtools::CameraModel> cameraModel_;
 };
 
 } /* namespace mo3d */
