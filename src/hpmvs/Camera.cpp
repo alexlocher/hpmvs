@@ -44,6 +44,8 @@ void Camera::init(const nvmtools::NVM_Camera* cam, int width, int height, const 
 		cameraModel_->set(nvmtools::NVMCameraModel::PRINCIPAL_POINT_Y, height / 2.0);
 	}
 
+	hasDistortion_ = cameraModel_->hasDistortion();
+
 	projection_.resize(maxLevel+1);
 	kMat_.resize(maxLevel+1);
 
