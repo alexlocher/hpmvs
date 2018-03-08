@@ -244,8 +244,8 @@ int main(int argc, char* argv[]) {
 	options.FILTER_SCENE_CENTER = FLAGS_only_sphere;
 	options.NCC_ALPHA_1 = FLAGS_ncc1;
 	options.NCC_ALPHA_2 = FLAGS_ncc2;
-	options.MIN_ANGLE = FLAGS_minAngle;
-	options.MAX_ANGLE = FLAGS_maxAngle;
+	options.MIN_ANGLE = FLAGS_minAngle * M_PI / 180.0;
+	options.MAX_ANGLE = FLAGS_maxAngle * M_PI / 180.0;
 
 	// launch the actual thing
 	return hp_pmvs(FLAGS_nvm, options);
