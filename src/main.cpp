@@ -51,6 +51,9 @@ DEFINE_bool(only_sphere, false, "only reconstruct points within a sphere around 
 DEFINE_double(ncc1, 0.6 , "patch NCC threshold before optimization (alpha 1)");
 DEFINE_double(ncc2, 0.8 , "patch NCC threshold after optimization (alpha 2)");
 
+DEFINE_double(minAngle, 10, "minimum angle between any two images of a patch");
+DEFINE_double(maxAngle, 60, "maximum angle between any two images of a patch");
+
 template<class Element>
 void getSubTrees(DynOctTree<Element>& tree,
 		std::vector<std::shared_ptr<DynOctTree<Element> > >& subTrees, const int minTrees = 2) {
@@ -241,6 +244,8 @@ int main(int argc, char* argv[]) {
 	options.FILTER_SCENE_CENTER = FLAGS_only_sphere;
 	options.NCC_ALPHA_1 = FLAGS_ncc1;
 	options.NCC_ALPHA_2 = FLAGS_ncc2;
+	options.MIN_ANGLE = FLAGS_minAngle;
+	options.MAX_ANGLE = FLAGS_maxAngle;
 
 	// launch the actual thing
 	return hp_pmvs(FLAGS_nvm, options);
